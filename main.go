@@ -9,28 +9,33 @@ import (
   "github.com/gorilla/mux"
 )
 
-type client struct {
-  ID      string //`json:"id"`
-  Name    string //`json:"name"`
+type Client struct {
+  ID      string `json:"id"`
+  Name    string `json:"name"`
 }
 
-func homeLink(w http.ResponseWriter, r *http.Request) {
+type Message struct {
+  ID string `json:"id"`
+  Message string `json:"message"`
+}
+
+var clients = map[string]Client{
+  "1": {
+      ID: "1",
+      Name: "Blair Trump",
+    },
+  "2": {
+      ID: "2",
+      Name: "Mina Hu",
+    },
+  }
+
+func about(w http.ResponseWriter, r *http.Request) {
   apiVersion := "v0.1"
   fmt.Fprintf(w, "API %s", apiVersion)
 }
 
 func getClient(w http.ResponseWriter, r *http.Request) {
-  clients := map[string]client{
-    "1": {
-        ID: "1",
-        Name: "Blair Trump",
-      },
-    "2": {
-        ID: "2",
-        Name: "Mina Hu",
-      },
-    }
-
   vars := mux.Vars(r)
   payload, _ := json.Marshal(clients[vars["id"]])
   w.Header().Set("Content-Type", "application/json")
@@ -39,26 +44,27 @@ func getClient(w http.ResponseWriter, r *http.Request) {
 }
 
 func getClients(w http.ResponseWriter, r *http.Request) {
-  clients := map[string]client{
-    "1": {
-        ID: "1",
-        Name: "Blair Trump",
-      },
-    "2": {
-        ID: "2",
-        Name: "Mina Hu",
-      },
-    }
-
   payload, _ := json.Marshal(clients)
   w.Header().Set("Content-Type", "application/json")
   w.Write(payload)
   fmt.Println(clients)
 }
 
+func parseAction(w http.ResponseWriter, r *http.Request) {
+  var m Message
+  err := json.NewDecoder(r.Body).Decode(&m)
+  if err != nil {
+    http.Error(w, err.Error(), http.StatusBadRequest)
+    return
+  }
+  fmt.Fprintf(w, "Message: %+v", m)
+  fmt.Println("Message: %+v", m)
+}
+
 func main() {
   router := mux.NewRouter().StrictSlash(true)
-  router.HandleFunc("/", homeLink)
+  router.HandleFunc("/action", parseAction)
+  router.HandleFunc("/about", about)
   router.HandleFunc("/client", getClients)
   router.HandleFunc("/client/{id}", getClient)
   port := 8081
