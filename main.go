@@ -1,18 +1,15 @@
 package main
 
 import (
-	"fmt"
-
-	"github.com/btrump/taurus/pkg/client"
 	"github.com/btrump/taurus/pkg/server"
 )
 
-func main() {
-	// fmt.Println(taurus.Config())
-	fmt.Println(client.Hello())
-	fmt.Println(server.Hello())
-	serverConfig := map[string]string{
-		"hello": "hello",
+func getConfig() map[string]string {
+	return map[string]string{
+		"key": "value",
 	}
-	server.Start(serverConfig)
+}
+
+func main() {
+	server.Start(getConfig())
 }
