@@ -28,33 +28,23 @@ func connectClientCMD(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	connectClient(client.Clients[vars["id"]])
 	sendJSON(Clients, w)
-	// log.Printf("server::config(): PLACEHOLDER")
 }
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
 	sendJSON(Config, w)
-	// log.Printf("server::config(): PLACEHOLDER")
 }
 
 func getClient(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	sendJSON(client.Clients[vars["id"]], w)
-	// log.Printf("api::getClient(): PLACEHOLDER")
 }
 
 func getClients(w http.ResponseWriter, r *http.Request) {
 	sendJSON(Clients, w)
-	// log.Printf("api::getClients(): PLACEHOLDER")
 }
 
 func handleRequest(m message.Request) message.Response {
-	var r = message.Response{
-		Timestamp: time.Now(),
-		Success:   true,
-		Message:   receiveRequest(m),
-	}
-	Messages = append(Messages, r)
-	return r
+	return receiveRequest(m)
 }
 
 func parseRequest(w http.ResponseWriter, r *http.Request) {

@@ -1,12 +1,12 @@
 package server
 
 import (
-	"fmt"
 	"log"
 	"time"
 
 	"github.com/btrump/taurus/internal/message"
 	"github.com/btrump/taurus/pkg/client"
+	"github.com/rs/xid"
 )
 
 type serverConfig struct {
@@ -27,7 +27,16 @@ type clientConnection struct {
 type state struct {
 	Order []string
 	Turn  int
+	Phase phase
 }
+
+type phase int
+
+const (
+	PHASE_PRE phase = iota
+	PHASE_STARTED
+	PHASE_COMPLETED
+)
 
 var Config serverConfig
 var Clients []clientConnection
@@ -35,9 +44,15 @@ var Messages []interface{}
 var Chat []string
 var State state
 
-func configureServer(config []map[string]string) serverConfig {
+func initialize() {
+	log.Printf("server::initialize(): Initializing")
+	State = state{
+		Phase: PHASE_PRE,
+	}
+}
+func configure(config []map[string]string) {
 	log.Printf("server::configureServer(): PLACEHOLDER")
-	return serverConfig{
+	Config = serverConfig{
 		ID:            "uniqueid",
 		Port:          8081,
 		Name:          "taurus-server",
@@ -58,19 +73,57 @@ func connectClient(client client.Client) {
 	State.Order = append(State.Order, client.ID)
 }
 
-func receiveRequest(m message.Request) string {
-	var res = fmt.Sprintf("server::receiveRequest(): Got message with command '%s' from user '%s'", m.Command, m.UserID)
-	log.Print(res)
-	Messages = append(Messages, m)
+func receiveRequest(req message.Request) message.Response {
+	log.Printf("server::receiveRequest(): Got message with command '%s' from user '%s'", req.Command, req.UserID)
+	res := evaluateMessage(req)
+	req.ID = xid.New().String()
+	res.ID = xid.New().String()
+	Messages = append(Messages, req, res)
 	return res
 }
 
-// func evaluateMessage(message message.Request) {
-//
-// }
+func evaluateMessage(m message.Request) message.Response {
+	var msg string
+	success := false
+	switch m.Command {
+	case "GAME_START":
+		if State.Phase == PHASE_PRE {
+			State.Phase = PHASE_STARTED
+			msg = "server::evaluateMessage(): Starting the game"
+			success = true
+		} else {
+			msg = "server::evaluateMessage(): Could not start game"
+		}
+	case "GAME_END":
+		if State.Phase != PHASE_COMPLETED {
+			State.Phase = PHASE_COMPLETED
+			msg = "server::evaluateMessage(): Ending the game"
+			success = true
+		} else {
+			msg = "server::evaluateMessage(): Could not end game"
+		}
+	case "NEXT_PHASE":
+		if State.Phase != PHASE_COMPLETED {
+			State.Phase++
+			msg = "server::evaluateMessage(): Advancing to next phase"
+			success = true
+		} else {
+			msg = "server::evaluateMessage(): Could not advance phase"
+		}
+	default:
+		msg = "server::evaluateMessage(): Did not recognize command"
+	}
+	log.Printf(msg)
+	return message.Response{
+		Timestamp: time.Now(),
+		Success:   success,
+		Message:   msg,
+	}
+}
 
 // Start accepts a configuration KVP object, and starts both the game engine and API server
 func Start(config ...map[string]string) {
-	Config = configureServer(config)
+	initialize()
+	configure(config)
 	startAPI()
 }
