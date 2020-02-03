@@ -11,11 +11,15 @@ type Client struct {
 
 var Clients = map[string]Client{
 	"1": {
-		ID:   "1",
-		Name: "Blair Trump",
+		ID:   "bosa3f4",
+		Name: "client1",
 	},
 	"2": {
-		ID:   "2",
-		Name: "Mina Hu",
+		ID:   "oitnc0d",
+		Name: "client2",
+	},
+	"3": {
+		ID:   "8eexmm0",
+		Name: "client3",
 	},
 }

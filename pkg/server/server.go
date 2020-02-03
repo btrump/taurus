@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"log"
 	"time"
 
@@ -25,9 +26,10 @@ type clientConnection struct {
 }
 
 type state struct {
-	Order []string
-	Turn  int
-	Phase phase
+	Order        []string
+	RoundCounter int
+	TurnCounter  int
+	Phase        phase
 }
 
 type phase int
@@ -82,41 +84,92 @@ func receiveRequest(req message.Request) message.Response {
 	return res
 }
 
-func evaluateMessage(m message.Request) message.Response {
-	var msg string
-	success := false
+func validateRequest(m message.Request) error {
+	var e error
 	switch m.Command {
 	case "GAME_START":
 		if State.Phase == PHASE_PRE {
 			State.Phase = PHASE_STARTED
-			msg = "server::evaluateMessage(): Starting the game"
-			success = true
+			// e = errors.New("server::evaluateMessage(): Starting the game")
+			// success = true
 		} else {
-			msg = "server::evaluateMessage(): Could not start game"
+			e = errors.New("server::evaluateMessage(): Could not start game")
 		}
 	case "GAME_END":
 		if State.Phase != PHASE_COMPLETED {
 			State.Phase = PHASE_COMPLETED
-			msg = "server::evaluateMessage(): Ending the game"
-			success = true
+			// e = errors.New("server::evaluateMessage(): Ending the game")
+			// success = true
 		} else {
-			msg = "server::evaluateMessage(): Could not end game"
+			e = errors.New("server::evaluateMessage(): Could not end game")
 		}
+	case "TURN_END":
 	case "NEXT_PHASE":
 		if State.Phase != PHASE_COMPLETED {
 			State.Phase++
-			msg = "server::evaluateMessage(): Advancing to next phase"
-			success = true
+			// e = errors.New("server::evaluateMessage(): Advancing to next phase")
+			// success = true
 		} else {
-			msg = "server::evaluateMessage(): Could not advance phase"
+			e = errors.New("server::evaluateMessage(): Could not advance phase")
 		}
 	default:
-		msg = "server::evaluateMessage(): Did not recognize command"
+		e = errors.New("server::evaluateMessage(): Did not recognize command")
 	}
-	log.Printf(msg)
+	return e
+}
+
+func evaluateMessage(m message.Request) message.Response {
+	if err := validateRequest(m); err != nil {
+		log.Printf("server::evaluateMessage(): validateRequest failure")
+		return message.Response{
+			Timestamp: time.Now(),
+			Success:   false,
+			Message:   err.Error(),
+		}
+	}
+	return srvHandleRequest(m)
+}
+
+func srvHandleRequest(m message.Request) message.Response {
+	var msg string
+	switch m.Command {
+	case "GAME_START":
+		// if State.Phase == PHASE_PRE {
+		// 	State.Phase = PHASE_STARTED
+		// 	// e = errors.New("server::evaluateMessage(): Starting the game")
+		// 	// success = true
+		// } else {
+		// 	e = errors.New("server::evaluateMessage(): Could not start game")
+		// }
+	case "GAME_END":
+		// if State.Phase != PHASE_COMPLETED {
+		// 	State.Phase = PHASE_COMPLETED
+		// 	// e = errors.New("server::evaluateMessage(): Ending the game")
+		// 	// success = true
+		// } else {
+		// 	e = errors.New("server::evaluateMessage(): Could not end game")
+		// }
+	case "TURN_END":
+		State.TurnCounter++
+		msg = "Ending turn."
+		if State.TurnCounter%len(State.Order) == 0 {
+			msg += " Ending round."
+			State.RoundCounter++
+		}
+	case "NEXT_PHASE":
+		// if State.Phase != PHASE_COMPLETED {
+		// 	State.Phase++
+		// 	// e = errors.New("server::evaluateMessage(): Advancing to next phase")
+		// 	// success = true
+		// } else {
+		// 	e = errors.New("server::evaluateMessage(): Could not advance phase")
+		// }
+	default:
+		msg = "server::evaluateMessage(): Did not recognize command. This should never happen"
+	}
 	return message.Response{
 		Timestamp: time.Now(),
-		Success:   success,
+		Success:   true,
 		Message:   msg,
 	}
 }
