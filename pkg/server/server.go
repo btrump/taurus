@@ -5,8 +5,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/btrump/taurus/internal/message"
-	"github.com/btrump/taurus/pkg/client"
+	"github.com/btrump/taurus-server/internal/message"
+	"github.com/btrump/taurus-server/pkg/client"
 	"github.com/rs/xid"
 )
 

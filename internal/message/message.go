@@ -1,6 +1,8 @@
 package message
 
-import "time"
+import (
+	"time"
+)
 
 type Request struct {
 	ID        string
