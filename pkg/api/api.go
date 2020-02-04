@@ -107,7 +107,8 @@ func (a *API) parseRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *API) serverStatus(w http.ResponseWriter, r *http.Request) {
-	a.sendJSON(a.Server, w)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write([]byte(a.Server.Status()))
 }
 
 func (a *API) sendJSON(v interface{}, w http.ResponseWriter) int {

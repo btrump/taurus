@@ -12,10 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type serverConfig struct {
-	Started time.Time
-	Name    string
-	Version string
+type Config struct {
 }
 
 type clientConnection struct {
@@ -25,8 +22,11 @@ type clientConnection struct {
 }
 
 type Server struct {
+	Name     string
+	Version  string
 	ID       string
-	Config   serverConfig
+	Config   Config
+	Started  time.Time
 	Clients  []clientConnection
 	Messages []interface{}
 	Chat     []string
@@ -42,12 +42,31 @@ func (s *Server) initialize() {
 }
 
 func (s *Server) configure(config []map[string]string) {
-	s.Config = serverConfig{
-		Name:    "taurus-server",
-		Version: "development",
-		Started: time.Now(),
-	}
+	s.Started = time.Now()
+	s.Name = "taurus-server"
+	s.Version = "development"
 	log.Printf("server::configureServer(): %s", helper.ToJSON(s.Config))
+}
+
+func (s *Server) Status() string {
+	status := struct {
+		ID           string
+		Name         string
+		Version      string
+		Started      time.Time
+		Uptime       time.Duration
+		ClientCount  int
+		MessageCount int
+		ChatCount    int
+		TurnCounter  int
+		RoundCounter int
+		Phase        phase.Phase
+		Config       Config
+		Clients      []clientConnection
+		Messages     []interface{}
+		State        state.State
+	}{s.Name, s.Version, s.ID, s.Started, time.Now().Sub(s.Started), len(s.Clients), len(s.Messages), len(s.Chat), s.State.TurnCounter, s.State.RoundCounter, s.State.Phase, s.Config, s.Clients, s.Messages, s.State}
+	return helper.ToJSON(status)
 }
 
 func (s *Server) ClientConnect(client client.Client) {
