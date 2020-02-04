@@ -6,9 +6,7 @@ import (
 )
 
 func getConfig() map[string]string {
-	return map[string]string{
-		"key": "value",
-	}
+	return map[string]string{}
 }
 
 func main() {
