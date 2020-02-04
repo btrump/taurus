@@ -12,35 +12,40 @@ import (
 	"github.com/google/uuid"
 )
 
+// Config is a containe for transient server settings
 type Config struct {
 }
 
-type clientConnection struct {
+// Connection holds information about a connected client
+type Connection struct {
 	ID        string
 	Connected time.Time
 	Client    *client.Client
 }
 
+// Server is an instance of the Taurus server
 type Server struct {
 	Name     string
 	Version  string
 	ID       string
 	Config   Config
 	Started  time.Time
-	Clients  []clientConnection
+	Clients  []Connection
 	Messages []interface{}
 	Chat     []string
 	State    state.State
 }
 
+// initialize sets the initial, static server values
 func (s *Server) initialize() {
 	s.ID = uuid.New().String()
 	log.Printf("server::initialize(): Initializing new server %s", s.ID)
 	s.State = state.State{
-		Phase: phase.PHASE_PRE,
+		Phase: phase.PRE,
 	}
 }
 
+// configure sets the transient server values
 func (s *Server) configure(config []map[string]string) {
 	s.Started = time.Now()
 	s.Name = "taurus-server"
@@ -48,6 +53,7 @@ func (s *Server) configure(config []map[string]string) {
 	log.Printf("server::configureServer(): %s", helper.ToJSON(s.Config))
 }
 
+// Status returns the current status of the server and the engine state
 func (s *Server) Status() string {
 	status := struct {
 		ID           string
@@ -62,17 +68,18 @@ func (s *Server) Status() string {
 		RoundCounter int
 		Phase        phase.Phase
 		Config       Config
-		Clients      []clientConnection
+		Clients      []Connection
 		Messages     []interface{}
 		State        state.State
-	}{s.Name, s.Version, s.ID, s.Started, time.Now().Sub(s.Started), len(s.Clients), len(s.Messages), len(s.Chat), s.State.TurnCounter, s.State.RoundCounter, s.State.Phase, s.Config, s.Clients, s.Messages, s.State}
+	}{s.ID, s.Name, s.Version, s.Started, time.Now().Sub(s.Started), len(s.Clients), len(s.Messages), len(s.Chat), s.State.TurnCounter, s.State.RoundCounter, s.State.Phase, s.Config, s.Clients, s.Messages, s.State}
 	return helper.ToJSON(status)
 }
 
+// ClientConnect adds a client to the list of clients and to the order list
 func (s *Server) ClientConnect(client client.Client) {
 	log.Printf("server::ClientConnect(): %s connected", client.ID)
 	log.Printf("server::ClientConnect(): appending '%s' to client list", client.ID)
-	s.Clients = append(s.Clients, clientConnection{
+	s.Clients = append(s.Clients, Connection{
 		Client:    &client,
 		Connected: time.Now(),
 	})
@@ -80,7 +87,8 @@ func (s *Server) ClientConnect(client client.Client) {
 	s.State.Order = append(s.State.Order, client.ID)
 }
 
-func (s *Server) evaluateMessage(m message.Request) message.Response {
+// requestEvaluate determines if a request is valid and, if so, handles it
+func (s *Server) requestEvaluate(m message.Request) message.Response {
 	if err := s.requestValidate(m); err != nil {
 		log.Printf("server::evaluateMessage(): requestValidate failure")
 		return message.Response{
@@ -89,10 +97,10 @@ func (s *Server) evaluateMessage(m message.Request) message.Response {
 			Message:   err.Error(),
 		}
 	}
-	return s.requestHandle(m)
+	return s.requestExecute(m)
 }
 
-// New accepts a configuration KVP object, and starts both the game engine and API server
+// New accepts a configuration KVP object, and returns a new configured server
 func New(config ...map[string]string) Server {
 	s := Server{}
 	s.initialize()
