@@ -1,9 +1,11 @@
 package phase
 
+// Phase is the current phase of the game state
 type Phase int
 
+// Valid phases
 const (
-	PHASE_PRE Phase = iota
-	PHASE_STARTED
-	PHASE_COMPLETED
+	PRE Phase = iota
+	STARTED
+	COMPLETED
 )
