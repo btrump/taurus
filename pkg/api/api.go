@@ -1,4 +1,4 @@
-package server
+package api
 
 import (
 	"encoding/json"
@@ -9,8 +9,43 @@ import (
 
 	"github.com/btrump/taurus-server/internal/message"
 	"github.com/btrump/taurus-server/pkg/client"
+	"github.com/btrump/taurus-server/pkg/server"
 	"github.com/gorilla/mux"
 )
+
+var Clients = map[string]client.Client{
+	"1": {
+		ID:   "bosa3f4",
+		Name: "client1",
+	},
+	"2": {
+		ID:   "oitnc0d",
+		Name: "client2",
+	},
+	"3": {
+		ID:   "8eexmm0",
+		Name: "client3",
+	},
+}
+var Router *mux.Router
+var Server *server.Server
+var BytesSent int
+var BytesReceived int
+
+func init() {
+	Router = mux.NewRouter().StrictSlash(true)
+	Router.HandleFunc("/api/status", status)
+	Router.HandleFunc("/server/status", serverStatus)
+	Router.HandleFunc("/", getConfig).Methods("GET")
+	Router.HandleFunc("/", parseRequest).Methods("POST")
+	Router.HandleFunc("/client", getClients)
+	Router.HandleFunc("/client/{id}", getClient)
+	Router.HandleFunc("/client/{id}/connect", clientConnect)
+}
+
+func Use(s *server.Server) {
+	Server = s
+}
 
 func status(w http.ResponseWriter, r *http.Request) {
 	sendJSON(BytesSent, w)
@@ -24,19 +59,19 @@ func sendJSON(v interface{}, w http.ResponseWriter) {
 	BytesSent += len(payload)
 }
 
-func connectClientCMD(w http.ResponseWriter, r *http.Request) {
+func clientConnect(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	connectClient(client.Clients[vars["id"]])
+	Server.ClientConnect(Clients[vars["id"]])
 	sendJSON(Clients, w)
 }
 
 func getConfig(w http.ResponseWriter, r *http.Request) {
-	sendJSON(Config, w)
+	sendJSON(Server.Config, w)
 }
 
 func getClient(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	sendJSON(client.Clients[vars["id"]], w)
+	sendJSON(Clients[vars["id"]], w)
 }
 
 func getClients(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +79,7 @@ func getClients(w http.ResponseWriter, r *http.Request) {
 }
 
 func handleRequest(m message.Request) message.Response {
-	return receiveRequest(m)
+	return Server.ReceiveRequest(m)
 }
 
 func parseRequest(w http.ResponseWriter, r *http.Request) {
@@ -61,28 +96,10 @@ func parseRequest(w http.ResponseWriter, r *http.Request) {
 }
 
 func serverStatus(w http.ResponseWriter, r *http.Request) {
-	data := struct {
-		Config   serverConfig
-		Clients  []clientConnection
-		Messages []interface{}
-		Chat     []string
-		State    state
-	}{Config, Clients, Messages, Chat, State}
-	sendJSON(data, w)
+	sendJSON(Server, w)
 }
 
-func startAPI() {
-	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/api/status", status)
-	router.HandleFunc("/server/status", serverStatus)
-	router.HandleFunc("/", getConfig).Methods("GET")
-	router.HandleFunc("/", parseRequest).Methods("POST")
-	router.HandleFunc("/client", getClients)
-	router.HandleFunc("/client/{id}", getClient)
-	router.HandleFunc("/client/{id}/connect", connectClientCMD)
-	log.Printf("Listening on port %d", Config.Port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", Config.Port), router))
+func Start() {
+	log.Printf("Listening on port %d", Server.Config.Port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", Server.Config.Port), Router))
 }
-
-var BytesSent int
-var BytesReceived int

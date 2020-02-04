@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/btrump/taurus/pkg/server"
+	"github.com/btrump/taurus-server/pkg/api"
+	"github.com/btrump/taurus-server/pkg/server"
 )
 
 func getConfig() map[string]string {
@@ -11,5 +12,7 @@ func getConfig() map[string]string {
 }
 
 func main() {
-	server.Start(getConfig())
+	s := server.New(getConfig())
+	api.Use(&s)
+	api.Start()
 }
