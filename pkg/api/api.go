@@ -42,8 +42,9 @@ type API struct {
 
 func New() API {
 	a := API{
-		ID:   uuid.New().String(),
-		Port: 8081,
+		ID:      uuid.New().String(),
+		Port:    8081,
+		Version: "development",
 	}
 	log.Printf("api::New(): New API %s", helper.ToJSON(a))
 	return a
@@ -65,25 +66,6 @@ func (a *API) Use(s *server.Server) {
 	a.Server = s
 	log.Printf("api::Use(): Attaching router")
 	a.attachRouter()
-}
-
-func (a *API) status(w http.ResponseWriter, r *http.Request) {
-	a.sendJSON(struct {
-		ID            string
-		Version       string
-		Port          int
-		BytesSent     int
-		BytesReceived int
-	}{a.ID, a.Version, a.Port, a.BytesSent, a.BytesReceived}, w)
-}
-
-func (a *API) sendJSON(v interface{}, w http.ResponseWriter) int {
-	payload, _ := json.Marshal(v)
-	w.Header().Set("Content-Type", "application/json")
-	w.Write(payload)
-	log.Printf("server::sendJSON(): SEND %d bytes: %s", len(payload), payload)
-	a.BytesSent += len(payload)
-	return len(payload)
 }
 
 func (a *API) clientConnect(w http.ResponseWriter, r *http.Request) {
@@ -128,7 +110,26 @@ func (a *API) serverStatus(w http.ResponseWriter, r *http.Request) {
 	a.sendJSON(a.Server, w)
 }
 
+func (a *API) sendJSON(v interface{}, w http.ResponseWriter) int {
+	payload, _ := json.Marshal(v)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(payload)
+	log.Printf("server::sendJSON(): SEND %d bytes: %s", len(payload), payload)
+	a.BytesSent += len(payload)
+	return len(payload)
+}
+
 func (a *API) Start() {
 	log.Printf("api::Start(): Listening on port %d", a.Port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", a.Port), a.Router))
+}
+
+func (a *API) status(w http.ResponseWriter, r *http.Request) {
+	a.sendJSON(struct {
+		ID            string
+		Version       string
+		Port          int
+		BytesSent     int
+		BytesReceived int
+	}{a.ID, a.Version, a.Port, a.BytesSent, a.BytesReceived}, w)
 }
