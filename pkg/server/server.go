@@ -4,28 +4,28 @@ import (
 	"log"
 	"time"
 
+	"github.com/btrump/taurus-server/internal/helper"
 	"github.com/btrump/taurus-server/internal/message"
 	"github.com/btrump/taurus-server/pkg/client"
 	"github.com/btrump/taurus-server/pkg/phase"
 	"github.com/btrump/taurus-server/pkg/state"
+	"github.com/google/uuid"
 )
 
 type serverConfig struct {
-	Started       time.Time
-	ID            string
-	Port          int
-	Name          string
-	ServerVersion string
-	APIVersion    string
+	Started time.Time
+	Name    string
+	Version string
 }
 
 type clientConnection struct {
-	Connected time.Time
 	ID        string
+	Connected time.Time
 	Client    *client.Client
 }
 
 type Server struct {
+	ID       string
 	Config   serverConfig
 	Clients  []clientConnection
 	Messages []interface{}
@@ -33,33 +33,31 @@ type Server struct {
 	State    state.State
 }
 
-func initialize(s *Server) {
-	log.Printf("server::initialize(): Initializing a new server")
+func (s *Server) initialize() {
+	s.ID = uuid.New().String()
+	log.Printf("server::initialize(): Initializing new server %s", s.ID)
 	s.State = state.State{
 		Phase: phase.PHASE_PRE,
 	}
 }
 
-func configure(s *Server, config []map[string]string) {
-	log.Printf("server::configureServer(): PLACEHOLDER")
+func (s *Server) configure(config []map[string]string) {
 	s.Config = serverConfig{
-		ID:            "uniqueid",
-		Port:          8081,
-		Name:          "taurus-server",
-		ServerVersion: "development",
-		APIVersion:    "development",
-		Started:       time.Now(),
+		Name:    "taurus-server",
+		Version: "development",
+		Started: time.Now(),
 	}
+	log.Printf("server::configureServer(): %s", helper.ToJSON(s.Config))
 }
 
 func (s *Server) ClientConnect(client client.Client) {
 	log.Printf("server::ClientConnect(): %s connected", client.ID)
-	log.Printf("server::ClientConnect(): %s appended to client list", client.ID)
+	log.Printf("server::ClientConnect(): appending '%s' to client list", client.ID)
 	s.Clients = append(s.Clients, clientConnection{
 		Client:    &client,
 		Connected: time.Now(),
 	})
-	log.Printf("server::ClientConnect(): %s appended to order list", client.ID)
+	log.Printf("server::ClientConnect(): appending '%s' to order list", client.ID)
 	s.State.Order = append(s.State.Order, client.ID)
 }
 
@@ -78,7 +76,7 @@ func (s *Server) evaluateMessage(m message.Request) message.Response {
 // New accepts a configuration KVP object, and starts both the game engine and API server
 func New(config ...map[string]string) Server {
 	s := Server{}
-	initialize(&s)
-	configure(&s, config)
+	s.initialize()
+	s.configure(config)
 	return s
 }

@@ -13,6 +13,7 @@ func getConfig() map[string]string {
 
 func main() {
 	s := server.New(getConfig())
-	api.Use(&s)
-	api.Start()
+	a := api.New()
+	a.Use(&s)
+	a.Start()
 }

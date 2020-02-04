@@ -7,9 +7,11 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/btrump/taurus-server/internal/helper"
 	"github.com/btrump/taurus-server/internal/message"
 	"github.com/btrump/taurus-server/pkg/client"
 	"github.com/btrump/taurus-server/pkg/server"
+	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
 
@@ -27,62 +29,89 @@ var Clients = map[string]client.Client{
 		Name: "client3",
 	},
 }
-var Router *mux.Router
-var Server *server.Server
-var BytesSent int
-var BytesReceived int
 
-func init() {
-	Router = mux.NewRouter().StrictSlash(true)
-	Router.HandleFunc("/api/status", status)
-	Router.HandleFunc("/server/status", serverStatus)
-	Router.HandleFunc("/", getConfig).Methods("GET")
-	Router.HandleFunc("/", parseRequest).Methods("POST")
-	Router.HandleFunc("/client", getClients)
-	Router.HandleFunc("/client/{id}", getClient)
-	Router.HandleFunc("/client/{id}/connect", clientConnect)
+type API struct {
+	ID            string
+	Router        *mux.Router
+	Server        *server.Server
+	Version       string
+	BytesSent     int
+	BytesReceived int
+	Port          int
 }
 
-func Use(s *server.Server) {
-	Server = s
+func New() API {
+	a := API{
+		ID:   uuid.New().String(),
+		Port: 8081,
+	}
+	log.Printf("api::New(): New API %s", helper.ToJSON(a))
+	return a
 }
 
-func status(w http.ResponseWriter, r *http.Request) {
-	sendJSON(BytesSent, w)
+func (a *API) attachRouter() {
+	a.Router = mux.NewRouter().StrictSlash(true)
+	a.Router.HandleFunc("/api/status", a.status)
+	a.Router.HandleFunc("/server/status", a.serverStatus)
+	a.Router.HandleFunc("/", a.getConfig).Methods("GET")
+	a.Router.HandleFunc("/", a.parseRequest).Methods("POST")
+	a.Router.HandleFunc("/client", a.getClients)
+	a.Router.HandleFunc("/client/{id}", a.getClient)
+	a.Router.HandleFunc("/client/{id}/connect", a.clientConnect)
 }
 
-func sendJSON(v interface{}, w http.ResponseWriter) {
+func (a *API) Use(s *server.Server) {
+	log.Printf("api::Use(): Using server %s", s.ID)
+	a.Server = s
+	log.Printf("api::Use(): Attaching router")
+	a.attachRouter()
+}
+
+func (a *API) status(w http.ResponseWriter, r *http.Request) {
+	a.sendJSON(struct {
+		ID            string
+		Version       string
+		Port          int
+		BytesSent     int
+		BytesReceived int
+	}{a.ID, a.Version, a.Port, a.BytesSent, a.BytesReceived}, w)
+}
+
+func (a *API) sendJSON(v interface{}, w http.ResponseWriter) int {
 	payload, _ := json.Marshal(v)
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(payload)
 	log.Printf("server::sendJSON(): SEND %d bytes: %s", len(payload), payload)
-	BytesSent += len(payload)
+	a.BytesSent += len(payload)
+	return len(payload)
 }
 
-func clientConnect(w http.ResponseWriter, r *http.Request) {
+func (a *API) clientConnect(w http.ResponseWriter, r *http.Request) {
+	payload, _ := json.Marshal(a)
+	log.Printf("API object: %s", payload)
 	vars := mux.Vars(r)
-	Server.ClientConnect(Clients[vars["id"]])
-	sendJSON(Clients, w)
+	a.Server.ClientConnect(Clients[vars["id"]])
+	a.sendJSON(Clients, w)
 }
 
-func getConfig(w http.ResponseWriter, r *http.Request) {
-	sendJSON(Server.Config, w)
+func (a *API) getConfig(w http.ResponseWriter, r *http.Request) {
+	a.sendJSON(a.Server.Config, w)
 }
 
-func getClient(w http.ResponseWriter, r *http.Request) {
+func (a *API) getClient(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
-	sendJSON(Clients[vars["id"]], w)
+	a.sendJSON(Clients[vars["id"]], w)
 }
 
-func getClients(w http.ResponseWriter, r *http.Request) {
-	sendJSON(Clients, w)
+func (a *API) getClients(w http.ResponseWriter, r *http.Request) {
+	a.sendJSON(Clients, w)
 }
 
-func handleRequest(m message.Request) message.Response {
-	return Server.ReceiveRequest(m)
+func (a *API) handleRequest(m message.Request) message.Response {
+	return a.Server.ReceiveRequest(m)
 }
 
-func parseRequest(w http.ResponseWriter, r *http.Request) {
+func (a *API) parseRequest(w http.ResponseWriter, r *http.Request) {
 	var m message.Request
 	err := json.NewDecoder(r.Body).Decode(&m)
 	if err != nil {
@@ -90,16 +119,16 @@ func parseRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	m.Timestamp = time.Now()
-	var response = handleRequest(m)
+	var response = a.handleRequest(m)
 	log.Printf("api::parseMessage(): Got request %s", m)
-	sendJSON(response, w)
+	a.sendJSON(response, w)
 }
 
-func serverStatus(w http.ResponseWriter, r *http.Request) {
-	sendJSON(Server, w)
+func (a *API) serverStatus(w http.ResponseWriter, r *http.Request) {
+	a.sendJSON(a.Server, w)
 }
 
-func Start() {
-	log.Printf("Listening on port %d", Server.Config.Port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", Server.Config.Port), Router))
+func (a *API) Start() {
+	log.Printf("api::Start(): Listening on port %d", a.Port)
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", a.Port), a.Router))
 }
