@@ -1,3 +1,7 @@
+/*
+Package api provides an implementation of an http API that faciliates
+communication between the server and taurus clients.
+*/
 package api
 
 import (
@@ -81,11 +85,13 @@ func (a *API) clientConnect(w http.ResponseWriter, r *http.Request) {
 	a.sendJSON(Clients[vars["id"]], w)
 }
 
+// getClient sends the requested client
 func (a *API) getClient(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	a.sendJSON(Clients[vars["id"]], w)
 }
 
+// getClients sends the list of currently connected clients
 func (a *API) getClients(w http.ResponseWriter, r *http.Request) {
 	a.sendJSON(Clients, w)
 }

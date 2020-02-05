@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-// Config is a containe for transient server settings
+// Config is a container for transient server settings
 type Config struct {
 }
 
