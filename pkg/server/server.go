@@ -1,6 +1,7 @@
 package server
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -76,7 +77,7 @@ func (s *Server) Status() string {
 }
 
 // ClientConnect adds a client to the list of clients and to the order list
-func (s *Server) ClientConnect(client client.Client) {
+func (s *Server) ClientConnect(client client.Client) (message.Response, error) {
 	log.Printf("server::ClientConnect(): %s connected", client.ID)
 	log.Printf("server::ClientConnect(): appending '%s' to client list", client.ID)
 	s.Clients = append(s.Clients, Connection{
@@ -85,6 +86,7 @@ func (s *Server) ClientConnect(client client.Client) {
 	})
 	log.Printf("server::ClientConnect(): appending '%s' to order list", client.ID)
 	s.State.Order = append(s.State.Order, client.ID)
+	return message.NewResponse(true, fmt.Sprintf("server::ClientConnect(): %s successfully connected", client.ID)), nil
 }
 
 // requestEvaluate determines if a request is valid and, if so, handles it

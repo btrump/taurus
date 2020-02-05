@@ -81,8 +81,11 @@ func (a *API) clientConnect(w http.ResponseWriter, r *http.Request) {
 	payload, _ := json.Marshal(a)
 	log.Printf("API object: %s", payload)
 	vars := mux.Vars(r)
-	a.Server.ClientConnect(Clients[vars["id"]])
-	a.sendJSON(Clients[vars["id"]], w)
+	m, err := a.Server.ClientConnect(Clients[vars["id"]])
+	if err != nil {
+		a.sendJSON(err, w)
+	}
+	a.sendJSON(m, w)
 }
 
 // getClient sends the requested client

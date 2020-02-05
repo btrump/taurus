@@ -2,6 +2,8 @@ package message
 
 import (
 	"time"
+
+	"github.com/google/uuid"
 )
 
 type Request struct {
@@ -17,4 +19,13 @@ type Response struct {
 	Timestamp time.Time
 	Success   bool
 	Message   string
+}
+
+func NewResponse(s bool, m string) Response {
+	return Response{
+		ID:        uuid.New().String(),
+		Timestamp: time.Now(),
+		Success:   s,
+		Message:   m,
+	}
 }

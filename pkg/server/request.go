@@ -55,19 +55,22 @@ func (s *Server) requestExecute(m message.Request) message.Response {
 	switch m.Command {
 	case "GAME_START":
 		s.State.Phase = phase.STARTED
+		msg = "server::requestExecute(): Game started"
 	case "GAME_END":
 		s.State.Phase = phase.COMPLETED
+		msg = "server::requestExecute(): Game ended"
 	case "TURN_END":
 		s.State.TurnCounter++
-		msg = "Ending turn."
+		msg = "server::requestExecute(): Ending turn"
 		if s.State.TurnCounter%len(s.State.Order) == 0 {
-			msg += " Ending round."
+			msg += ". Ending round."
 			s.State.RoundCounter++
 		}
 	case "NEXT_PHASE":
 		s.State.Phase++
+		msg = "server::requestExecute(): Advancing to next phase"
 	default:
-		msg = "server::evaluateMessage(): Did not recognize command. This should never happen, because request was already validated"
+		msg = "server::requestExecute(): Did not recognize command. This should never happen, because request was already validated"
 	}
 	return message.Response{
 		Timestamp: time.Now(),
