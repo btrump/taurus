@@ -14,7 +14,6 @@ import (
 	"github.com/btrump/taurus-server/pkg/fsm"
 	"github.com/btrump/taurus-server/pkg/message"
 	"github.com/google/uuid"
-	"github.com/rs/xid"
 )
 
 // Config is a container for transient server settings
@@ -59,22 +58,23 @@ func (s *Server) configure(config []map[string]string) {
 // Status returns the current status of the server and the engine state
 func (s *Server) Status() string {
 	status := struct {
-		ID           string
-		Name         string
-		Version      string
-		Started      time.Time
-		Uptime       time.Duration
-		ClientCount  int
-		MessageCount int
-		ChatCount    int
-		TurnCounter  int
-		RoundCounter int
-		Phase        fsm.Phase
-		Config       Config
-		Clients      []Connection
-		Messages     []interface{}
-		State        fsm.State
-	}{s.ID, s.Name, s.Version, s.Started, time.Now().Sub(s.Started), len(s.Clients), len(s.Messages), len(s.Chat), s.FSM.State.TurnCounter, s.FSM.State.RoundCounter, s.FSM.State.Phase, s.Config, s.Clients, s.Messages, s.FSM.State}
+		ID            string
+		Name          string
+		Version       string
+		Started       time.Time
+		Uptime        time.Duration
+		ClientCount   int
+		MessageCount  int
+		ChatCount     int
+		TurnCounter   int
+		RoundCounter  int
+		CurrentPlayer *fsm.Player
+		Phase         fsm.Phase
+		Config        Config
+		Clients       []Connection
+		Messages      []interface{}
+		State         fsm.State
+	}{s.ID, s.Name, s.Version, s.Started, time.Now().Sub(s.Started), len(s.Clients), len(s.Messages), len(s.Chat), s.FSM.State.TurnCounter, s.FSM.State.RoundCounter, s.FSM.PlayerCurrent(), s.FSM.State.Phase, s.Config, s.Clients, s.Messages, s.FSM.State}
 	return helper.ToJSON(status)
 }
 
@@ -86,14 +86,13 @@ func (s *Server) ClientConnect(client client.Client) (message.Response, error) {
 		Client:    &client,
 		Connected: time.Now(),
 	})
-	log.Printf("server::ClientConnect(): appending '%s' to order list", client.ID)
-	s.FSM.State.Order = append(s.FSM.State.Order, client.ID)
+	s.FSM.PlayerAdd(client.ID, client.Name)
 	return message.NewResponse(true, fmt.Sprintf("server::ClientConnect(): %s successfully connected", client.ID)), nil
 }
 
 // ProcessRequest accepts requests, stamps them with IDs
 func (s *Server) ProcessRequest(req message.Request) message.Response {
-	req.ID = xid.New().String()
+	req.ID = uuid.New().String()
 	log.Printf("server::ProcessRequest(): Got message with command '%s' from user '%s'. Assigned id %s", req.Command, req.UserID, req.ID)
 	res, err := s.FSM.Validate(req)
 	if err != nil {

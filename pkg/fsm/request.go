@@ -47,6 +47,11 @@ func (f *FSM) Execute(m message.Request) (message.Response, error) {
 		f.State.Phase = COMPLETED
 		msg = "server::requestExecute(): Game ended"
 	case "TURN_END":
+		if !f.isTurn(m.UserID) {
+			msg = "server::requestExecute(): Not player's turn"
+			err = errors.New(msg)
+			break
+		}
 		f.State.TurnCounter++
 		msg = "server::requestExecute(): Ending turn"
 		if f.State.TurnCounter%len(f.State.Order) == 0 {
