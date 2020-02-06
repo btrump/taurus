@@ -1,5 +1,5 @@
 /*
-Package fsm provides a state machine that manages state
+Package fsm provides a state machine that manages state of the game world
 */
 package fsm
 
@@ -15,6 +15,7 @@ const (
 	COMPLETED
 )
 
+// State is a container for the objects in the game world
 type State struct {
 	Order        []string
 	RoundCounter int
@@ -22,10 +23,12 @@ type State struct {
 	Phase        Phase
 }
 
+// FSM is a container for the state of the game world
 type FSM struct {
 	State State
 }
 
+// initialize sets the initial values of the state machine
 func (f *FSM) initialize() {
 	log.Printf("fsm::initialize(): Initializing FSM")
 	f.State = State{
@@ -33,6 +36,7 @@ func (f *FSM) initialize() {
 	}
 }
 
+// New returns a new, initialized state machine
 func New() *FSM {
 	log.Printf("fsm::New(): Creating new FSM")
 	f := FSM{}

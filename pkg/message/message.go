@@ -6,9 +6,8 @@ import (
 	"github.com/google/uuid"
 )
 
+// Request is a container for a client-to-server message
 type Request struct {
-	// Execute()
-	// Validate()
 	ID        string
 	Timestamp time.Time
 	UserID    string
@@ -16,6 +15,7 @@ type Request struct {
 	Message   string
 }
 
+// Response is a container for a server-to-client message
 type Response struct {
 	ID        string
 	Timestamp time.Time
@@ -23,6 +23,7 @@ type Response struct {
 	Message   string
 }
 
+// NewResponse accepts a success code and string, and returns a stamped response
 func NewResponse(s bool, m string) Response {
 	return Response{
 		ID:        uuid.New().String(),
