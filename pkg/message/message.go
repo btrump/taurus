@@ -1,3 +1,7 @@
+/*
+Package message implements a basic envelope for passing messages from client
+to API to server to FSM
+*/
 package message
 
 import (

@@ -1,3 +1,7 @@
+/*
+Package server providdes an implementation of a server that accepts client
+requests and passes them to an underlying state machine for evaluation
+*/
 package server
 
 import (

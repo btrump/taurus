@@ -1,6 +1,6 @@
 /*
 Package api provides an implementation of an http API that faciliates
-communication between the server and taurus clients.
+communication between the server and taurus clients
 */
 package api
 
