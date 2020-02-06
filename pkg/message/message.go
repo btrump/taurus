@@ -7,6 +7,8 @@ import (
 )
 
 type Request struct {
+	// Execute()
+	// Validate()
 	ID        string
 	Timestamp time.Time
 	UserID    string

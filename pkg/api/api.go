@@ -12,8 +12,8 @@ import (
 	"time"
 
 	"github.com/btrump/taurus-server/internal/helper"
-	"github.com/btrump/taurus-server/internal/message"
 	"github.com/btrump/taurus-server/pkg/client"
+	"github.com/btrump/taurus-server/pkg/message"
 	"github.com/btrump/taurus-server/pkg/server"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
@@ -101,7 +101,7 @@ func (a *API) getClients(w http.ResponseWriter, r *http.Request) {
 
 // requestExecute sends validated requests to the associated server
 func (a *API) requestExecute(m message.Request) message.Response {
-	return a.Server.ReceiveRequest(m)
+	return a.Server.ProcessRequest(m)
 }
 
 // requestParse determines if a request is valid and, if so, handles it
@@ -136,7 +136,7 @@ func (a *API) sendJSON(v interface{}, w http.ResponseWriter) int {
 
 // Start begins serving the API on the configured port
 func (a *API) Start() {
-	log.Printf("api::Start(): Listening on port %d", a.Port)
+	log.Printf("api::Start(): Listening on 0.0.0.0:%d", a.Port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", a.Port), a.Router))
 }
 
