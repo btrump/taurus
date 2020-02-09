@@ -66,6 +66,7 @@ func (a *API) attachRouter() {
 	a.Router.HandleFunc("/client", a.getClients)
 	a.Router.HandleFunc("/client/{id}", a.getClient)
 	a.Router.HandleFunc("/client/{id}/connect", a.clientConnect)
+	a.Router.HandleFunc("/ttt", a.ttt)
 }
 
 // Use associates a server with the API

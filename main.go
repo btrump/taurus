@@ -9,12 +9,8 @@ import (
 	"github.com/btrump/taurus-server/pkg/server"
 )
 
-func getConfig() map[string]string {
-	return map[string]string{}
-}
-
 func main() {
-	s := server.New(getConfig())
+	s := server.New()
 	a := api.New()
 	a.Use(&s)
 	a.Start()

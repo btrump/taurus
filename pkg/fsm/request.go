@@ -2,6 +2,7 @@ package fsm
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/btrump/taurus-server/pkg/message"
 )
@@ -26,6 +27,7 @@ func (f *FSM) Validate(m message.Request) (message.Response, error) {
 		if f.State.Phase != STARTED {
 			err = errors.New("server::Validate(): Could not advance phase. Not in STARTED state")
 		}
+	case "MARK_TILE":
 	default:
 		err = errors.New("server::Validate(): Did not recognize command")
 	}
@@ -61,6 +63,9 @@ func (f *FSM) Execute(m message.Request) (message.Response, error) {
 	case "NEXT_PHASE":
 		f.State.Phase++
 		msg = "server::requestExecute(): Advancing to next phase"
+	case "MARK_TILE":
+		tile, _ := strconv.ParseInt(m.Message, 0, 64)
+		f.State.Data.Env[tile] = m.UserID
 	default:
 		msg = "server::requestExecute(): Did not recognize command. This should never happen, because request was already validated"
 	}

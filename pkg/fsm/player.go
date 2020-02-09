@@ -10,6 +10,7 @@ type Player struct {
 	Name string
 }
 
+// NewPlayer returns a newly initialized player
 func NewPlayer(id string, n string) *Player {
 	log.Printf("fsm::Player(): Creating new player")
 	return &Player{

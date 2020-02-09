@@ -32,6 +32,9 @@ func (f *FSM) initialize() {
 		Phase: PRE,
 	}
 	f.State.Players = make(map[string]*Player)
+	for i, _ := range f.State.Data.Env {
+		f.State.Data.Env[i] = "-"
+	}
 }
 
 // New returns a new, initialized state machine
