@@ -1,6 +1,6 @@
 package fsm
 
-// State is a container for the objects in the game world
+// State describes the current game world
 type State struct {
 	Players      map[string]*Player
 	Order        []string
@@ -10,9 +10,10 @@ type State struct {
 	Data         Data
 }
 
+// Data is a container for the objects in the game world
 type Data struct {
-	Env     [9]string
-	Players map[string]interface{}
+	Env   [9]string
+	Score [2]int
 }
 
 func (f *FSM) isTurn(id string) bool {
@@ -22,3 +23,12 @@ func (f *FSM) isTurn(id string) bool {
 	}
 	return false
 }
+
+// func (f *FSM) isOpen(i string) bool {
+// 	f.State.Data.Env
+// 	p := f.PlayerCurrent()
+// 	if p != nil {
+// 		return p.ID == id
+// 	}
+// 	return false
+// }
