@@ -11,8 +11,9 @@ import (
 
 	"github.com/btrump/taurus-server/internal/helper"
 	"github.com/btrump/taurus-server/pkg/client"
-	"github.com/btrump/taurus-server/pkg/fsm"
+	"github.com/btrump/taurus-server/pkg/engine"
 	"github.com/btrump/taurus-server/pkg/message"
+	"github.com/btrump/taurus-server/pkg/ttt"
 	"github.com/google/uuid"
 )
 
@@ -37,14 +38,14 @@ type Server struct {
 	Clients  []Connection
 	Messages []interface{}
 	Chat     []string
-	FSM      *fsm.FSM
+	Engine   engine.Engine
 }
 
 // initialize sets the initial, static server values
 func (s *Server) initialize() {
 	s.ID = uuid.New().String()
 	log.Printf("server::initialize(): Initializing new server %s", s.ID)
-	s.FSM = fsm.New()
+	s.Engine = ttt.New()
 }
 
 // configure sets the transient server values
@@ -66,15 +67,12 @@ func (s *Server) Status() string {
 		ClientCount   int
 		MessageCount  int
 		ChatCount     int
-		TurnCounter   int
-		RoundCounter  int
-		CurrentPlayer *fsm.Player
-		Phase         fsm.Phase
+		CurrentPlayer string
 		Config        Config
 		Clients       []Connection
 		Messages      []interface{}
-		State         fsm.State
-	}{s.ID, s.Name, s.Version, s.Started, time.Now().Sub(s.Started), len(s.Clients), len(s.Messages), len(s.Chat), s.FSM.State.TurnCounter, s.FSM.State.RoundCounter, s.FSM.PlayerCurrent(), s.FSM.State.Phase, s.Config, s.Clients, s.Messages, s.FSM.State}
+		Stats         interface{}
+	}{s.ID, s.Name, s.Version, s.Started, time.Now().Sub(s.Started), len(s.Clients), len(s.Messages), len(s.Chat), s.Engine.PlayerCurrent(), s.Config, s.Clients, s.Messages, s.Engine.Stats()}
 	return helper.ToJSON(status)
 }
 
@@ -86,7 +84,7 @@ func (s *Server) ClientConnect(client client.Client) (message.Response, error) {
 		Client:    &client,
 		Connected: time.Now(),
 	})
-	s.FSM.PlayerAdd(client.ID, client.Name)
+	s.Engine.PlayerAdd(client.Name)
 	return message.NewResponse(true, fmt.Sprintf("server::ClientConnect(): %s successfully connected", client.ID)), nil
 }
 
@@ -94,12 +92,12 @@ func (s *Server) ClientConnect(client client.Client) (message.Response, error) {
 func (s *Server) ProcessRequest(req message.Request) message.Response {
 	req.ID = uuid.New().String()
 	log.Printf("server::ProcessRequest(): Got message with command '%s' from user '%s'. Assigned id %s", req.Command, req.UserID, req.ID)
-	res, err := s.FSM.Validate(req)
+	res, err := s.Engine.Validate(req)
 	if err != nil {
 		log.Printf("server::ProcessRequest(): request %s is not valid", res.ID)
 	} else {
 		log.Printf("server::ProcessRequest(): request %s is valid", res.ID)
-		res, _ = s.FSM.Execute(req)
+		res, _ = s.Engine.Execute(req)
 	}
 	s.Messages = append(s.Messages, struct {
 		Request  message.Request

@@ -23,15 +23,23 @@ func row(i int) int {
 }
 
 func (a *API) score(i int) int {
-	return a.Server.FSM.State.Data.Score[i]
+	return 0 //a.Server.Engine.GetScore(i)
+	// State.Data.Score[i]
+}
+
+func (a *API) isConnected(i int) bool {
+	// return 0 //a.Server.Engine.GetScore(i)
+	// State.Data.Score[i]
+	// return a.Server.Engine.GetState().Players[i]
+	return true
 }
 
 func (a *API) currentPlayer() string {
-	p := a.Server.FSM.PlayerCurrent()
-	if p == nil {
+	p := a.Server.Engine.PlayerCurrent()
+	if p == "" {
 		return "No players connected"
 	}
-	return fmt.Sprintf("%s's turn", p.Name)
+	return fmt.Sprintf("%s's turn", p)
 }
 
 func (a *API) ttt(w http.ResponseWriter, r *http.Request) {
@@ -44,7 +52,8 @@ func (a *API) ttt(w http.ResponseWriter, r *http.Request) {
 		"col":           col,
 		"currentPlayer": a.currentPlayer,
 		"score":         a.score,
+		"isConnected":   a.isConnected,
 	}
 	t, _ := template.New(tFile).Funcs(funcMap).ParseFiles(tFile)
-	t.Execute(w, a.Server.FSM.State)
+	t.Execute(w, a.Server.Engine.GetState())
 }
