@@ -2,8 +2,8 @@ package ttt
 
 // State describes the current game world
 type State struct {
-	Players      [2]*Player
-	Order        [2]int
+	Players      []*Player
+	Order        []int
 	RoundCounter int
 	TurnCounter  int
 	Phase        Phase
@@ -16,7 +16,7 @@ type Data struct {
 	Env [9]string
 }
 
-func (e *Engine) isTurn(id string) bool {
+func (e *Engine) IsTurn(id string) bool {
 	return e.PlayerCurrent() == id
 }
 
@@ -27,4 +27,4 @@ func (e *Engine) isTurn(id string) bool {
 // 		return p.ID == id
 // 	}
 // 	return false
-// }
+// }s

@@ -36,3 +36,14 @@ func NewResponse(s bool, m string) Response {
 		Message:   m,
 	}
 }
+
+// NewRequest accepts a success code and string, and returns a stamped response
+func NewRequest(u string, c string, m string) Request {
+	return Request{
+		ID:        uuid.New().String(),
+		Timestamp: time.Now(),
+		UserID:    u,
+		Command:   c,
+		Message:   m,
+	}
+}

@@ -27,10 +27,8 @@ func (e *Engine) initialize() {
 	e.state = State{
 		Phase: PRE,
 	}
-	// e.state.Players = make(map[string]*Player)
-	for i := range e.state.Data.Env {
-		e.state.Data.Env[i] = "-"
-	}
+	e.state.Players = make([]*Player, 0, 2)
+	e.state.Order = make([]int, 0, 2)
 }
 
 // Validate ensures that a request is valid
@@ -75,7 +73,7 @@ func (f *Engine) Execute(m message.Request) (message.Response, error) {
 		f.state.Phase = COMPLETED
 		msg = "server::requestExecute(): Game ended"
 	case "TURN_END":
-		if !f.isTurn(m.UserID) {
+		if !f.IsTurn(m.UserID) {
 			msg = "server::requestExecute(): Not player's turn"
 			err = errors.New(msg)
 			break
