@@ -19,6 +19,22 @@ const (
 	COMPLETED
 )
 
+// State describes the current game world
+type State struct {
+	Players      []*Player
+	Order        []int
+	RoundCounter int
+	TurnCounter  int
+	Phase        Phase
+	Data         Data
+	Score        [2]int
+}
+
+// Data is a container for the objects in the game world
+type Data struct {
+	Env [9]string
+}
+
 // Engine is a container for the state of the game world
 type Engine struct {
 	state State
@@ -34,11 +50,6 @@ func New() *Engine {
 
 // PlayerCurrent returns the currently active player
 func (e Engine) PlayerCurrent() string {
-	defer func() {
-		if r := recover(); r != nil {
-			return
-		}
-	}()
 	return e.state.Players[e.state.Order[e.state.TurnCounter%len(e.state.Order)]].ID
 }
 
@@ -46,7 +57,7 @@ func (e Engine) PlayerCurrent() string {
 func (e *Engine) PlayerAdd(n string) (message.Response, error) {
 	l := len(e.GetPlayers())
 	if l > 1 {
-		msg := "ttt::PlayerAdd(): Fauiled to add player %s"
+		msg := "ttt::PlayerAdd(): Failed to add player %s"
 		return message.NewResponse(false, fmt.Sprintf(msg, n)), errors.New(msg)
 	}
 	e.state.Players = append(e.state.Players, NewPlayer(n, n))
@@ -158,4 +169,14 @@ func (e *Engine) Execute(m message.Request) (message.Response, error) {
 		msg = "server::requestExecute(): Did not recognize command. This should never happen, because request was already validated"
 	}
 	return message.NewResponse(err == nil, msg), err
+}
+
+// IsTurn returns true if it is the supplied player's turn, false otherwise
+func (e *Engine) IsTurn(id string) bool {
+	return e.PlayerCurrent() == id
+}
+
+// GetPhase returns the engine's current phase
+func (e *Engine) GetPhase() Phase {
+	return e.state.Phase
 }

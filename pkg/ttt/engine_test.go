@@ -82,3 +82,55 @@ func TestSetScore(t *testing.T) {
 		t.Errorf("Got %v; wanted 1", e.GetScore(0))
 	}
 }
+
+func TestPlayerCurrent(t *testing.T) {
+	e := ttt.New()
+	e.PlayerAdd("a")
+	e.PlayerAdd("b")
+	m := message.NewRequest("a", "TURN_END", "")
+	if e.PlayerCurrent() != "a" {
+		t.Errorf("Got player '%v'; want 'a'", e.PlayerCurrent())
+	}
+
+	e.Execute(m)
+	if e.PlayerCurrent() != "b" {
+		t.Errorf("Got player '%v'; want 'b'", e.PlayerCurrent())
+	}
+
+	m = message.NewRequest("b", "TURN_END", "")
+	e.Execute(m)
+	if e.PlayerCurrent() != "a" {
+		t.Errorf("Got player '%v'; want 'a'", e.PlayerCurrent())
+	}
+}
+
+func TestStats(t *testing.T) {
+	e := ttt.New()
+	if e.Stats() == nil {
+		t.Errorf("Got 0; want 1")
+	}
+}
+
+func TestSetPhase(t *testing.T) {
+	e := ttt.New()
+	e.SetPhase(ttt.STARTED)
+	if e.GetPhase() != ttt.STARTED {
+		t.Errorf("Got '%v'; want '%v'", e.GetPhase(), ttt.STARTED)
+	}
+}
+
+func TestPlayerAdd(t *testing.T) {
+	e := ttt.New()
+	l := len(e.GetPlayers())
+	if l != 0 {
+		t.Errorf("Got '%v'; want '%v'", l, 0)
+	}
+	// Add 3 players, only 2 should be added
+	e.PlayerAdd("a")
+	e.PlayerAdd("b")
+	e.PlayerAdd("c")
+	l = len(e.GetPlayers())
+	if l != 2 {
+		t.Errorf("Got '%v'; want '%v'", l, 2)
+	}
+}
