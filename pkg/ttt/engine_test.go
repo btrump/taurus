@@ -64,3 +64,21 @@ func TestIsTurn(t *testing.T) {
 		t.Errorf("Got player '%v'; want 'a'", e.PlayerCurrent())
 	}
 }
+
+func TestGetScore(t *testing.T) {
+	e := ttt.New()
+	e.PlayerAdd("a")
+	e.PlayerAdd("b")
+	if e.SetScore(0, 1) != e.GetScore(0) {
+		t.Errorf("Got %v; wanted 1", e.GetScore(0))
+	}
+}
+
+func TestSetScore(t *testing.T) {
+	e := ttt.New()
+	e.PlayerAdd("a")
+	e.PlayerAdd("b")
+	if e.SetScore(0, 1) != e.GetScore(0) {
+		t.Errorf("Got %v; wanted 1", e.GetScore(0))
+	}
+}

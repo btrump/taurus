@@ -40,9 +40,6 @@ func (e *Engine) PlayerAdd(n string) (message.Response, error) {
 	}
 	e.state.Players = append(e.state.Players, NewPlayer(n, n))
 	e.state.Order = append(e.state.Order, l)
-	// e.state.Order = append()
-	// e.PlayerAdd(n)
-	// e.state.Players[i] = NewPlayer(string(i), n)
 	return message.NewResponse(true, fmt.Sprintf("ttt::PlayerAdd(): Added player %s", n)), nil
 }
 
@@ -58,6 +55,16 @@ func (e *Engine) GetState() interface{} {
 // Stats returns statistics about the engine
 func (e *Engine) Stats() interface{} {
 	return struct{}{}
+}
+
+func (e *Engine) SetScore(p int, s int) int {
+	e.state.Score[p] = s
+	return s
+}
+
+// GetScore returns the score for player i
+func (e *Engine) GetScore(i int) int {
+	return e.state.Score[i]
 }
 
 func (e *Engine) SetPhase(p Phase) {

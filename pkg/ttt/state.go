@@ -19,12 +19,3 @@ type Data struct {
 func (e *Engine) IsTurn(id string) bool {
 	return e.PlayerCurrent() == id
 }
-
-// func (f *FSM) isOpen(i string) bool {
-// 	f.State.Data.Env
-// 	p := f.PlayerCurrent()
-// 	if p != nil {
-// 		return p.ID == id
-// 	}
-// 	return false
-// }s
