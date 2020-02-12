@@ -2,6 +2,7 @@ package engine
 
 import "github.com/btrump/taurus-server/pkg/message"
 
+// Engine is an interface that defines the contract for interaction with a server
 type Engine interface {
 	GetState() interface{}
 	Stats() interface{}

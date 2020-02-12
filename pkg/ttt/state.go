@@ -16,6 +16,7 @@ type Data struct {
 	Env [9]string
 }
 
+// IsTurn returns true if it is the supplied player's turn, false otherwise
 func (e *Engine) IsTurn(id string) bool {
 	return e.PlayerCurrent() == id
 }
