@@ -134,3 +134,19 @@ func TestPlayerAdd(t *testing.T) {
 		t.Errorf("Got '%v'; want '%v'", l, 2)
 	}
 }
+
+func TestValidate(t *testing.T) {
+	e := ttt.New()
+	// test a garbage command
+	req := message.NewRequest("1", "GARBAGE", "")
+	res, err := e.Validate(req)
+	if err == nil {
+		t.Errorf("Got '%s'; want nil", res.Message)
+	}
+	// test a real command
+	req = message.NewRequest("1", "GAME_END", "")
+	res, err = e.Validate(req)
+	if err != nil {
+		t.Errorf("Got '%s'; want nil", res.Message)
+	}
+}
