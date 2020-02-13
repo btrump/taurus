@@ -19,6 +19,8 @@ import (
 
 // Config is a container for transient server settings
 type Config struct {
+	Name    string
+	Version string
 }
 
 // Connection holds information about a connected client
@@ -39,21 +41,6 @@ type Server struct {
 	Messages []interface{}
 	Chat     []string
 	Engine   engine.Engine
-}
-
-// initialize sets the initial, static server values
-func (s *Server) initialize() {
-	s.ID = uuid.New().String()
-	log.Printf("server::initialize(): Initializing new server %s", s.ID)
-	s.Engine = ttt.New()
-}
-
-// configure sets the transient server values
-func (s *Server) configure(config []map[string]string) {
-	s.Started = time.Now()
-	s.Name = "taurus-server"
-	s.Version = "development"
-	log.Printf("server::configureServer(): %s", helper.ToJSON(s.Config))
 }
 
 // Status returns the current status of the server and the engine state
@@ -107,9 +94,33 @@ func (s *Server) ProcessRequest(req message.Request) message.Response {
 }
 
 // New accepts a configuration KVP object, and returns a new configured server
-func New(config ...map[string]string) Server {
+func New() *Server {
 	s := Server{}
 	s.initialize()
-	s.configure(config)
-	return s
+	s.Configure(Config{})
+	return &s
+}
+
+// initialize sets the initial, static server values
+func (s *Server) initialize() {
+	s.ID = uuid.New().String()
+	log.Printf("server::initialize(): Initializing new server %s", s.ID)
+	s.Engine = ttt.New()
+}
+
+// Configure sets the transient server values
+func (s *Server) Configure(config Config) {
+	log.Printf("server::Configure(): %s", helper.ToJSON(config))
+	s.Started = time.Now()
+	if config.Name != "" {
+		s.Name = config.Name
+	} else {
+		s.Name = "taurus-server-default"
+	}
+	if config.Version != "" {
+		s.Version = config.Version
+	} else {
+		s.Version = "development"
+	}
+	log.Printf("server::Configure(): %s", helper.ToJSON(s.Config))
 }
