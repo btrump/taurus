@@ -12,6 +12,6 @@ import (
 func main() {
 	s := server.New()
 	a := api.New()
-	a.Use(&s)
+	a.Use(s)
 	a.Start()
 }

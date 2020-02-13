@@ -83,9 +83,11 @@
                   <i class="fas fa-times"></i>
                 </div>
                 <div class="mui-col-md-8 ttt-player-name">
-                  Player 1
+                  {{ isConnected 0 }}
+                  Player 1's name
+                  <button>Connect</button>
                 </div>
-                <div class="mui-col-md-1 mui-col-md-offset-1 ttt-player-scor">
+                <div class="mui-col-md-1 mui-col-md-offset-1 ttt-player-score">
                   {{ score 0 }}
                 </div>
               </div>
