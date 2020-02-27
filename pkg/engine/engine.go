@@ -8,6 +8,6 @@ type Engine interface {
 	Stats() interface{}
 	PlayerAdd(string) (message.Response, error)
 	PlayerCurrent() string
-	Validate(message.Request) (message.Response, error)
+	// Validate(message.Request) (message.Response, error)
 	Execute(message.Request) (message.Response, error)
 }

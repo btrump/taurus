@@ -3,6 +3,7 @@ package api
 import (
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 )
 
@@ -55,5 +56,6 @@ func (a *API) ttt(w http.ResponseWriter, r *http.Request) {
 		"isConnected":   a.isConnected,
 	}
 	t, _ := template.New(tFile).Funcs(funcMap).ParseFiles(tFile)
+	log.Printf("%v", a.Server.Engine.GetState())
 	t.Execute(w, a.Server.Engine.GetState())
 }

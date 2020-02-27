@@ -79,13 +79,7 @@ func (s *Server) ClientConnect(client client.Client) (message.Response, error) {
 func (s *Server) ProcessRequest(req message.Request) message.Response {
 	req.ID = uuid.New().String()
 	log.Printf("server::ProcessRequest(): Got message with command '%s' from user '%s'. Assigned id %s", req.Command, req.UserID, req.ID)
-	res, err := s.Engine.Validate(req)
-	if err != nil {
-		log.Printf("server::ProcessRequest(): request %s is not valid", res.ID)
-	} else {
-		log.Printf("server::ProcessRequest(): request %s is valid", res.ID)
-		res, _ = s.Engine.Execute(req)
-	}
+	res, _ := s.Engine.Execute(req)
 	s.Messages = append(s.Messages, struct {
 		Request  message.Request
 		Response message.Response

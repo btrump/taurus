@@ -40,3 +40,13 @@ func TestConfigure(t *testing.T) {
 func TestProcessRequest(t *testing.T) {
 	// t.Errorf("error")
 }
+
+func TestStatus(t *testing.T) {
+	s := server.New()
+	var x interface{} = s.Status()
+	switch v := x.(type) {
+	case string:
+	default:
+		t.Errorf("Got '%v'; want string", v)
+	}
+}

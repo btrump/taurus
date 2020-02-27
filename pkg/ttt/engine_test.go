@@ -83,8 +83,20 @@ func TestSetScore(t *testing.T) {
 	}
 }
 
+func TestExecute(t *testing.T) {
+	e := ttt.New()
+	m := message.NewRequest("x", "NONSENSE", "")
+	_, err := e.Execute(m)
+	if err == nil {
+		t.Errorf("Got %v, wanted nil", err)
+	}
+}
+
 func TestPlayerCurrent(t *testing.T) {
 	e := ttt.New()
+	if e.PlayerCurrent() != "" {
+		t.Errorf("Got player '%v'; want ''", e.PlayerCurrent())
+	}
 	e.PlayerAdd("a")
 	e.PlayerAdd("b")
 	m := message.NewRequest("a", "TURN_END", "")
@@ -135,18 +147,68 @@ func TestPlayerAdd(t *testing.T) {
 	}
 }
 
-func TestValidate(t *testing.T) {
+func TestCommandGameEnd(t *testing.T) {
 	e := ttt.New()
-	// test a garbage command
-	req := message.NewRequest("1", "GARBAGE", "")
-	res, err := e.Validate(req)
-	if err == nil {
-		t.Errorf("Got '%s'; want nil", res.Message)
-	}
-	// test a real command
-	req = message.NewRequest("1", "GAME_END", "")
-	res, err = e.Validate(req)
+	m := message.NewRequest("u", "GAME_END", "m")
+	_, err := e.Execute(m)
 	if err != nil {
-		t.Errorf("Got '%s'; want nil", res.Message)
+		t.Errorf("Got '%v'; want nil", err)
 	}
 }
+
+func TestCommandGameStart(t *testing.T) {
+	e := ttt.New()
+	m := message.NewRequest("u", "GAME_START", "m")
+	_, err := e.Execute(m)
+	if err != nil {
+		t.Errorf("Got '%v'; want nil", err)
+	}
+}
+
+func TestCommandTurnEnd(t *testing.T) {
+	e := ttt.New()
+	m := message.NewRequest("a", "TURN_END", "m")
+	_, err := e.Execute(m)
+	if err == nil {
+		t.Errorf("Got '%v'; want error", err)
+	}
+	e.PlayerAdd("a")
+	_, err = e.Execute(m)
+	if err != nil {
+		t.Errorf("Got '%v'; want nil", err)
+	}
+}
+
+func TestCommandPhaseNext(t *testing.T) {
+	e := ttt.New()
+	m := message.NewRequest("u", "NEXT_PHASE", "m")
+	_, err := e.Execute(m)
+	if err != nil {
+		t.Errorf("Got '%v'; want nil", err)
+	}
+}
+
+func TestCommandTileMark(t *testing.T) {
+	e := ttt.New()
+	m := message.NewRequest("u", "MARK_TILE", "m")
+	_, err := e.Execute(m)
+	if err != nil {
+		t.Errorf("Got '%v'; want nil", err)
+	}
+}
+
+// func TestValidate(t *testing.T) {
+// 	e := ttt.New()
+// 	// test a garbage command
+// 	req := message.NewRequest("1", "GARBAGE", "")
+// 	res, err := e.Validate(req)
+// 	if err == nil {
+// 		t.Errorf("Got '%s'; want nil", res.Message)
+// 	}
+// 	// test a real command
+// 	req = message.NewRequest("1", "GAME_END", "")
+// 	res, err = e.Validate(req)
+// 	if err != nil {
+// 		t.Errorf("Got '%s'; want nil", res.Message)
+// 	}
+// }
