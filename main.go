@@ -3,10 +3,9 @@ package main
 import (
 	"fmt"
 
+	"github.com/btrump/taurus-server/pkg/client"
+	"github.com/btrump/taurus-server/pkg/server"
 	"github.com/sirupsen/logrus"
-
-	"github.com/btrump/t2/pkg/client"
-	"github.com/btrump/t2/pkg/server"
 )
 
 var log *logrus.Entry
@@ -22,7 +21,7 @@ func init() {
 	})
 	log = logrus.WithFields(
 		logrus.Fields{
-			"application": "t2-demo",
+			"application": "watcher-demo",
 			"version":     "0.0.1",
 		},
 	)

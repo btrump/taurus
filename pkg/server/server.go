@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"time"
+
 	"github.com/google/uuid"
 
 	"github.com/sirupsen/logrus"
@@ -14,7 +15,7 @@ var log *logrus.Entry
 func init() {
 	log = logrus.WithFields(
 		logrus.Fields{
-			"application": "t2-server",
+			"application": "taurus-server",
 			"version":     "0.0.1",
 		},
 	)
@@ -27,7 +28,7 @@ type Server struct {
 	port     int
 	clients  [10]int
 	started  time.Time
-	id string
+	id       string
 }
 
 // New returns a new instance of a server
